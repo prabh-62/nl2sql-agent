@@ -828,16 +828,22 @@
           "xunit.v3.runner.common": "[4.0.2]"
         }
       },
+      "nl2sql.agent": {
+        "type": "Project",
+        "dependencies": {
+          "Azure.Identity": "[1.21.0, )",
+          "Microsoft.Agents.AI": "[1.25.0, )",
+          "Microsoft.Extensions.AI": "[10.11.0, )",
+          "Microsoft.Extensions.AI.OpenAI": "[10.11.0, )",
+          "Nl2Sql.Data": "[1.0.0, )"
+        }
+      },
       "nl2sql.api": {
         "type": "Project",
         "dependencies": {
           "Aspire.Microsoft.Data.SqlClient": "[13.6.1, )",
-          "Azure.Identity": "[1.21.0, )",
-          "Microsoft.Agents.AI": "[1.25.0, )",
           "Microsoft.Agents.AI.Hosting.AGUI.AspNetCore": "[1.25.0-preview.261014.1, )",
-          "Microsoft.Extensions.AI": "[10.11.0, )",
-          "Microsoft.Extensions.AI.OpenAI": "[10.11.0, )",
-          "Nl2Sql.Data": "[1.0.0, )",
+          "Nl2Sql.Agent": "[1.0.0, )",
           "Nl2Sql.ServiceDefaults": "[1.0.0, )"
         }
       },
@@ -847,6 +853,12 @@
           "Microsoft.Data.SqlClient": "[7.1.1, )",
           "Microsoft.Data.SqlClient.Extensions.Azure": "[7.1.1, )",
           "Microsoft.SqlServer.TransactSql.ScriptDom": "[180.140.0, )"
+        }
+      },
+      "nl2sql.evals": {
+        "type": "Project",
+        "dependencies": {
+          "Nl2Sql.Agent": "[1.0.0, )"
         }
       },
       "nl2sql.migrationservice": {

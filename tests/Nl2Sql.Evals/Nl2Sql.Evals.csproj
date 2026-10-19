@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Runs the golden set against the real model and database: dotnet run (project tests/Nl2Sql.Evals). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Nl2Sql.Agent\Nl2Sql.Agent.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="cases.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Nl2Sql.UnitTests" />
+  </ItemGroup>
+
+</Project>

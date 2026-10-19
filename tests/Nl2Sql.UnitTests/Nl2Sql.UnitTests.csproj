@@ -5,9 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Nl2Sql.Agent\Nl2Sql.Agent.csproj" />
     <ProjectReference Include="..\..\src\Nl2Sql.Api\Nl2Sql.Api.csproj" />
     <ProjectReference Include="..\..\src\Nl2Sql.Data\Nl2Sql.Data.csproj" />
     <ProjectReference Include="..\..\src\Nl2Sql.MigrationService\Nl2Sql.MigrationService.csproj" />
+    <ProjectReference Include="..\Nl2Sql.Evals\Nl2Sql.Evals.csproj" />
   </ItemGroup>
 
   <ItemGroup>
