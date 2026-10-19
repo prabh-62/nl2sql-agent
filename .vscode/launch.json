@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // F5 starts the AppHost and attaches the debugger to every .NET project it launches
+      // (API, migration service). Needs the Aspire extension (see extensions.json).
+      "name": "Aspire: run and debug everything",
+      "type": "aspire",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/Nl2Sql.AppHost/Nl2Sql.AppHost.csproj"
+    }
+  ]
+}

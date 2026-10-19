@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "microsoft-aspire.aspire-vscode",
+    "ms-dotnettools.csdevkit",
+    "ms-mssql.mssql"
+  ]
+}
