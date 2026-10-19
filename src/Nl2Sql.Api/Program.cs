@@ -51,11 +51,14 @@ static IChatClient CreateChatClient(IConfiguration configuration, IHostEnvironme
 
     // Entra only: Azure CLI login locally, managed identity in Azure. Key auth is disabled on the resource.
     var authentication = new BearerTokenPolicy(new DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default");
-#pragma warning disable OPENAI001 // Token-credential constructor is marked experimental in the OpenAI SDK.
+    // The Responses API, not Chat Completions: reasoning models such as gpt-6-luna only accept
+    // function tools there.
+#pragma warning disable OPENAI001 // Token-credential constructor and Responses client are marked experimental in the OpenAI SDK.
     var client = new OpenAIClient(authentication, new OpenAIClientOptions { Endpoint = endpoint });
+    var responses = client.GetResponsesClient().AsIChatClient(deployment);
 #pragma warning restore OPENAI001
 
-    return client.GetChatClient(deployment).AsIChatClient()
+    return responses
         .AsBuilder()
         .UseOpenTelemetry(
             sourceName: environment.ApplicationName,
