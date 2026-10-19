@@ -18,7 +18,7 @@ public sealed class AgentTools(IConfiguration configuration, IHttpContextAccesso
     // The model sees at most this many rows; the full result (up to QueryRunner.MaxRows) is for the UI.
     private const int RowsForModel = 50;
 
-    private static readonly JsonSerializerOptions Json = new() { WriteIndented = false };
+    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull };
 
     private readonly string _connectionString = configuration.GetConnectionString("db")
         ?? throw new InvalidOperationException("Connection string 'db' is missing.");
@@ -55,9 +55,10 @@ public sealed class AgentTools(IConfiguration configuration, IHttpContextAccesso
         return JsonSerializer.Serialize(examples, Json);
     }
 
-    [Description("Runs one T-SQL SELECT against the ai views and returns the result. If it fails, read the error, fix the query and try again; you have 2 retries per question.")]
+    [Description("Runs one T-SQL SELECT against the ai views and returns the result. If it fails, read the error, fix the query and try again; you have 2 retries per question. When a chart would help the user (a trend over time, or a comparison across a few categories), pass one; skip it for single numbers and long lists.")]
     public async Task<string> RunQueryAsync(
         [Description("A single T-SQL SELECT statement that reads only views in schema ai.")] string sql,
+        [Description("Optional chart of this query's result.")] ChartSuggestion? chart,
         CancellationToken cancellationToken)
     {
         var request = Request;
@@ -75,13 +76,20 @@ public sealed class AgentTools(IConfiguration configuration, IHttpContextAccesso
             return JsonSerializer.Serialize(new { error = result.Error, retriesLeft = MaxFailedQueries - failures - 1 }, Json);
         }
 
+        var rows = result.Rows.Take(RowsForModel).ToArray();
+
+        // Checked here, in the same round trip as the query, so a chart costs no extra model call.
+        var chartError = chart?.Validate(result.Columns, rows);
+
         return JsonSerializer.Serialize(new
         {
             columns = result.Columns,
-            rows = result.Rows.Take(RowsForModel),
+            rows,
             rowCount = result.Rows.Count,
             truncated = result.IsTruncated || result.Rows.Count > RowsForModel,
             views = result.Views,
+            chart = chartError is null ? chart : null,
+            chartError,
         }, Json);
     }
 

@@ -57,11 +57,15 @@ var agent = new ChatClientAgent(
                   you need. Never guess column names.
                 - Call get_examples with the user's question and follow the patterns it returns, especially the
                   business rules in their notes (net revenue, local time, what counts as a latte or a customer).
+                - Call describe_view and get_examples in the same turn to save time.
                 - Answer with run_query: one SELECT, two-part names (ai.Orders). If it returns an error, fix the
                   query and try again; you have 2 retries.
+                - Pass a chart to run_query when it helps: line for a trend over time, bar to compare a few
+                  categories. Order the rows the way they should be plotted. No chart for single numbers.
                 - The data is already limited to what this user may see. Never filter by brand or location
                   unless the user asks about a specific location.
-                - Answer in plain language with the numbers that matter. If the question isn't about the data,
+                - Answer in plain language in 2 to 4 sentences, with the few numbers that matter (short markdown
+                  is fine). The user sees the full table and the chart under your answer, so never list every row. If the question isn't about the data,
                   or asks you to change data, say you can only answer questions about it.
                 """,
             MaxOutputTokens = builder.Configuration.GetValue("Agent:MaxOutputTokens", 2000),
