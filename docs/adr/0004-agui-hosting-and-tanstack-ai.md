@@ -56,3 +56,13 @@ Things to know:
 ## Reusable lesson
 
 A .NET `IChatClient` agent and a TanStack AI React client talk AG-UI out of the box: `MapAGUIServer` on the server, `fetchServerSentEvents` on the client. Name your tools explicitly and look at `rawEvent` before shipping.
+
+## UI stack (Milestone 4, 2026-10-19)
+
+- **shadcn/ui** (Nova preset) on **Tailwind CSS v4**, with **AI Elements** for the chat pieces (conversation, message, tool steps, code block). Both are copied into `src/web/src/components` as source (Apache-2.0/MIT), not installed as packages. They worked with Vite+ and TypeScript 7 without changes.
+- **No Vercel AI SDK.** AI Elements imports a few *types* from the `ai` package; they're replaced by `src/components/ai-elements/types.ts`, and `src/lib/chat-parts.ts` maps TanStack AI's message parts (`tool-call`, `tool-result`, `text`) onto them. A lint rule (`no-restricted-imports`) fails the build if anything imports `ai`. Switching chat clients means changing `chat-parts.ts`.
+- Two AI Elements files were split so the heavy parts load on demand: `MessageResponse` (Streamdown markdown) into `message-response.tsx`, and `ToolInput`/`ToolOutput` (Shiki highlighting) into `tool-details.tsx`. With lazy loading, the entry bundle went from about 1.8 MB to 0.8 MB (245 KB gzipped).
+- Tool results reach the browser JSON-encoded twice (the .NET tool returns a JSON string, which AG-UI serializes again); `chat-parts.ts` decodes both layers.
+- The persona travels as an `X-Persona` header via `fetchServerSentEvents(url, { headers })`, and a custom `fetchClient` turns the gate's JSON errors into readable messages.
+
+**Reusable lesson:** treat AI Elements as a starting point you own, not a dependency: copy it, replace its SDK types with your own, and lint-block the SDK.
