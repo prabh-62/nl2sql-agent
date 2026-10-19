@@ -12,10 +12,10 @@ Aspire 13.6's Azure integrations offer `RunAsExisting` and `PublishAsExisting`. 
 
 With `AddAzureSqlServer(...).PublishAsExisting(...)`, `AddDatabase("db", "rasoolpur")`, `AddAzureOpenAI(...).PublishAsExisting(...)`, `AddDeployment(...)` and `AddAzureAppServiceEnvironment(...)`:
 
-1. **The database is re-declared, not referenced.** The server is `existing`, but `rasoolpur` is a full `Microsoft.Sql/servers/databases` resource with `sku: GP_S_Gen5_2`, `useFreeLimit: true` and `freeLimitExhaustionBehavior: AutoPause`. Deploying it would PUT over the live database and could reset settings it doesn't mention (min capacity 0.5, auto-pause delay 60 minutes, max size 32 GB).
+1. **The database is re-declared, not referenced.** The server is `existing`, but `rasoolpur` is a full `Microsoft.Sql/servers/databases` resource with `sku: GP_S_Gen5_2`, `useFreeLimit: true` and `freeLimitExhaustionBehavior: AutoPause`. A read-only `az deployment group what-if` shows the only difference from the live database is the SKU spelling (`GP_S_Gen5` with capacity 2 becomes `GP_S_Gen5_2`, the same size). Min capacity, auto-pause delay and max size are untouched. It's still a write to a database we don't want Aspire to own.
 2. **A firewall rule is added** (`AllowAllAzureIps`) to the existing server.
-3. **A new model deployment is created.** `AddDeployment` emits a `Microsoft.CognitiveServices/accounts/deployments` resource (`Standard`, capacity 8) instead of referencing the existing `gpt-5.4-mini` Global Standard deployment.
-4. **App Service needs a container registry.** The App Service environment adds an Azure Container Registry (Basic SKU, which is paid) and deploys the API as a container image, not as code.
+3. **A new model deployment is created.** `AddDeployment("chat", "gpt-5.4-mini", ...)` emits a new deployment named `chat` (`Standard`, capacity 8) instead of referencing the existing `gpt-5.4-mini` Global Standard deployment. `what-if` confirms it as a Create.
+4. **App Service needs a container registry.** The App Service environment adds an Azure Container Registry (Basic SKU, about US$0.17 a day, roughly $5 a month in westus2) and deploys the API as a container image, not as code.
 5. A role assignment (Cognitive Services OpenAI User) is added for the API's managed identity on the Foundry resource. That one we want.
 
 `RunAsExisting` runs the same kind of provisioning during `aspire run`, so it would make these changes from a developer's laptop too.
@@ -40,4 +40,4 @@ Nothing in Azure is created or changed by `aspire run`.
 
 ## Reusable lesson
 
-`PublishAsExisting`/`RunAsExisting` on a server doesn't make its child resources existing. Always run `aspire publish` to a local folder and read the Bicep before any deploy touches shared or free-tier resources.
+`PublishAsExisting`/`RunAsExisting` on a server doesn't make its child resources existing. Always run `aspire publish` to a local folder, read the Bicep and run `az deployment group what-if` on it before any deploy touches shared or free-tier resources.
