@@ -15,21 +15,38 @@ builder.AddSqlServerClient("db", settings => settings.DisableHealthChecks = true
 
 builder.Services.AddProblemDetails();
 builder.Services.AddAGUIServer();
-builder.Services.AddSingleton<DatabaseTools>();
+builder.Services.AddSingleton<AgentTools>();
 builder.Services.AddSingleton(services => CreateChatClient(builder.Configuration, builder.Environment));
 
 var app = builder.Build();
 
 app.UseExceptionHandler();
 
-var tools = app.Services.GetRequiredService<DatabaseTools>();
+var tools = app.Services.GetRequiredService<AgentTools>();
 var agent = app.Services.GetRequiredService<IChatClient>().AsAIAgent(
     name: "nl2sql",
     instructions: """
-        You help café owners and managers understand their coffee-ordering data.
-        When asked about the database, call the ping_db tool and summarise what it returns.
+        You answer questions from café owners and managers about their coffee-ordering business by
+        querying a SQL Server database (T-SQL).
+
+        - Only the views in schema ai exist for you. Call list_views, then describe_view for the views
+          you need. Never guess column names.
+        - Call get_examples with the user's question and follow the patterns it returns, especially the
+          business rules in their notes (net revenue, local time, what counts as a latte or a customer).
+        - Answer with run_query: one SELECT, two-part names (ai.Orders). If it returns an error, fix the
+          query and try again, at most twice.
+        - The data is already limited to what this user may see. Never filter by brand or location
+          unless the user asks about a specific location.
+        - Answer in plain language with the numbers that matter. If the question isn't about the data,
+          or asks you to change data, say you can only answer questions about it.
         """,
-    tools: [AIFunctionFactory.Create(tools.PingDbAsync, name: "ping_db")],
+    tools:
+    [
+        AIFunctionFactory.Create(tools.ListViewsAsync, name: "list_views"),
+        AIFunctionFactory.Create(tools.DescribeViewAsync, name: "describe_view"),
+        AIFunctionFactory.Create(tools.GetExamplesAsync, name: "get_examples"),
+        AIFunctionFactory.Create(tools.RunQueryAsync, name: "run_query"),
+    ],
     services: app.Services);
 
 app.MapAGUIServer("/api/agui", agent);

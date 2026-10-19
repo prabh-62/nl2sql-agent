@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Nl2Sql.ServiceDefaults\Nl2Sql.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Nl2Sql.Data\Nl2Sql.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>

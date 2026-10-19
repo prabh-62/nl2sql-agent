@@ -463,6 +463,14 @@
         "resolved": "9.0.18",
         "contentHash": "1/iz9Eex1TBMYdAk+m3igaMvL+nk+rY1EqL6u93an/j1ghxmB24vGOKXkVFy3NSPA39s1H/+SNoK257tHoXoLA=="
       },
+      "nl2sql.data": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Data.SqlClient": "[7.1.1, )",
+          "Microsoft.Data.SqlClient.Extensions.Azure": "[7.1.1, )",
+          "Microsoft.SqlServer.TransactSql.ScriptDom": "[180.140.0, )"
+        }
+      },
       "nl2sql.servicedefaults": {
         "type": "Project",
         "dependencies": {
@@ -523,6 +531,12 @@
         "dependencies": {
           "Microsoft.Extensions.ServiceDiscovery.Abstractions": "10.11.0"
         }
+      },
+      "Microsoft.SqlServer.TransactSql.ScriptDom": {
+        "type": "CentralTransitive",
+        "requested": "[180.140.0, )",
+        "resolved": "180.140.0",
+        "contentHash": "qdSHJPR3t2mqLcYQ31E9hBhQfuHo34jOtMEOrCKHBNuV+IShlLfDR8/tDzXR7MeI2ZhlZ+8wCVRMACifoAepAA=="
       },
       "OpenTelemetry.Exporter.OpenTelemetryProtocol": {
         "type": "CentralTransitive",
