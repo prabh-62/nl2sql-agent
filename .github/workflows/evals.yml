@@ -1,0 +1,62 @@
+name: evals
+
+# Runs the golden set against the real models and database and writes the results table to the job
+# summary. Manual only: a full run is about 100 agent runs, so it isn't triggered by pushes or PRs.
+on:
+  workflow_dispatch:
+    inputs:
+      models:
+        description: Model deployments, comma-separated
+        default: gpt-5.4-mini,gpt-6-luna
+      modes:
+        description: Catalog modes, comma-separated (discovery, prompt)
+        default: discovery,prompt
+      cases:
+        description: Case IDs, comma-separated (empty for all)
+        default: ""
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: evals
+  cancel-in-progress: false
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      # Signed in as the nl2sql-reader identity itself: no switching to a reader user.
+      NL2SQL_EVALS_MODE: direct
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-dotnet@v6.0.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: "**/packages.lock.json"
+      # OIDC as the nl2sql-reader identity: SELECT on the ai views, and calling the Foundry models.
+      - uses: azure/login@v3.1.0
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+      - name: Evals
+        env:
+          MODELS: ${{ inputs.models }}
+          MODES: ${{ inputs.modes }}
+          CASES: ${{ inputs.cases }}
+        run: |
+          args=(--models "$MODELS" --modes "$MODES" --output artifacts/evals)
+          if [ -n "$CASES" ]; then args+=(--cases "$CASES"); fi
+          dotnet run --project tests/Nl2Sql.Evals --configuration Release -- "${args[@]}"
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: eval-results
+          path: artifacts/evals/
+          if-no-files-found: ignore
