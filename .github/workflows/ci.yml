@@ -15,12 +15,25 @@ concurrency:
 jobs:
   dotnet:
     runs-on: ubuntu-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: actions/setup-dotnet@v6.0.0
         with:
           global-json-file: global.json
-      - run: dotnet build Nl2Sql.slnx --configuration Release
+          cache: true
+          cache-dependency-path: "**/packages.lock.json"
+      # Fails if packages.lock.json is out of date. NuGet audit fails on vulnerable packages (warnings are errors).
+      - name: Restore
+        run: dotnet restore Nl2Sql.slnx --locked-mode
+      - name: Check formatting and code style
+        run: dotnet format Nl2Sql.slnx --verify-no-changes --no-restore
+      - name: Build (analyzers and code style enforced, warnings as errors)
+        run: dotnet build Nl2Sql.slnx --configuration Release --no-restore
+      - name: Test
+        run: dotnet test Nl2Sql.slnx --configuration Release --no-build
 
   web:
     runs-on: ubuntu-latest
@@ -29,11 +42,17 @@ jobs:
         working-directory: src/web
     steps:
       - uses: actions/checkout@v7.0.1
-      # Pinned to an exact release: the floating v1 tag is frozen at an old version.
-      # Vite+ resolves Node from engines.node in src/web/package.json.
+      # Pinned to an exact release: the floating v1 tag no longer receives updates.
+      # Vite+ resolves Node from engines.node and pnpm from devEngines in src/web/package.json,
+      # and installs with the frozen pnpm-lock.yaml.
       - uses: voidzero-dev/setup-vp@v1.21.2
         with:
           working-directory: src/web
           cache: true
-      - run: vp check
-      - run: vp build
+      - name: Check formatting, lint and types
+        run: vp check
+      # Remove --passWithNoTests once the first web tests land (M4).
+      - name: Test
+        run: vp test --passWithNoTests
+      - name: Build
+        run: vp build
