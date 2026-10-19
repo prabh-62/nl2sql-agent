@@ -26,7 +26,6 @@ public sealed class ReadOnlyTests
         "EXEC sys.sp_set_session_context @key = N'BrandId', @value = 2;",
         "EXEC sys.sp_set_session_context @key = N'LocationId', @value = NULL;",
         "EXEC sys.sp_set_session_context @key = N'LocationId', @value = 101;",
-        "REVERT;",
         "EXECUTE AS USER = 'dbo';",
     ];
 
@@ -40,6 +39,27 @@ public sealed class ReadOnlyTests
 
         // The connection is still the scoped reader afterwards.
         Assert.Equal(1, await session.Connection.ScalarAsync<int>("SELECT CAST(SESSION_CONTEXT(N'BrandId') AS int);"));
+        Assert.Equal(1, await session.Connection.ScalarAsync<int>("SELECT IS_ROLEMEMBER('nl2sql_reader');"));
+    }
+
+    [Fact]
+    public async Task Reader_cannot_revert_to_the_signed_in_user()
+    {
+        await using var session = await SafetyDatabase.OpenAsync(TenantScope.Owner(1));
+        var reader = await session.Connection.ScalarAsync<string>("SELECT USER_NAME();");
+
+        if (SafetyDatabase.Impersonates)
+        {
+            // Locally the connection switched from an admin to the reader; going back needs the cookie.
+            await Assert.ThrowsAsync<SqlException>(() => session.Connection.ExecuteAsync("REVERT;"));
+        }
+        else
+        {
+            // Signed in as the reader identity itself (CI, production): there is nothing to revert to.
+            await session.Connection.ExecuteAsync("REVERT;");
+        }
+
+        Assert.Equal(reader, await session.Connection.ScalarAsync<string>("SELECT USER_NAME();"));
         Assert.Equal(1, await session.Connection.ScalarAsync<int>("SELECT IS_ROLEMEMBER('nl2sql_reader');"));
     }
 
