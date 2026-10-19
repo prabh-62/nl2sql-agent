@@ -33,7 +33,36 @@ jobs:
       - name: Build (analyzers and code style enforced, warnings as errors)
         run: dotnet build Nl2Sql.slnx --configuration Release --no-restore
       - name: Test
-        run: dotnet test Nl2Sql.slnx --configuration Release --no-build
+        run: dotnet test --solution Nl2Sql.slnx --configuration Release --no-build
+
+  # Tenant isolation and read-only checks against the real Azure SQL database, signed in with
+  # GitHub OIDC as the nl2sql-reader managed identity (the identity production uses). No secrets:
+  # the IDs are repository variables. Forks can't get an OIDC token, so their PRs skip this.
+  safety:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      NL2SQL_SAFETY_MODE: direct
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-dotnet@v6.0.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: "**/packages.lock.json"
+      - uses: azure/login@v3.1.0
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          # The identity has no Azure role assignments, only a database user.
+          allow-no-subscriptions: true
+      - name: Safety tests
+        run: dotnet run --project tests/Nl2Sql.SafetyTests --configuration Release
 
   web:
     runs-on: ubuntu-latest
