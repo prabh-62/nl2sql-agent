@@ -293,7 +293,8 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Data.SqlClient": "[7.1.1, )",
-          "Microsoft.Data.SqlClient.Extensions.Azure": "[7.1.1, )"
+          "Microsoft.Data.SqlClient.Extensions.Azure": "[7.1.1, )",
+          "Microsoft.SqlServer.TransactSql.ScriptDom": "[180.140.0, )"
         }
       },
       "Azure.Identity": {
@@ -338,6 +339,12 @@
           "Microsoft.Identity.Client": "4.84.2",
           "Microsoft.Identity.Client.Broker": "4.84.2"
         }
+      },
+      "Microsoft.SqlServer.TransactSql.ScriptDom": {
+        "type": "CentralTransitive",
+        "requested": "[180.140.0, )",
+        "resolved": "180.140.0",
+        "contentHash": "qdSHJPR3t2mqLcYQ31E9hBhQfuHo34jOtMEOrCKHBNuV+IShlLfDR8/tDzXR7MeI2ZhlZ+8wCVRMACifoAepAA=="
       },
       "System.Security.Cryptography.Pkcs": {
         "type": "CentralTransitive",
