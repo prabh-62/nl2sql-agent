@@ -36,7 +36,7 @@ Nothing in Azure is created or changed by `aspire run`.
 ## Open for M6
 
 - Make the database and model deployment `existing` in the published Bicep (e.g. via `ConfigureInfrastructure`), or keep connection strings and add only the identity and role assignments.
-- Choose a registry, ACR (paid) or ghcr.io (free for public images), and confirm App Service **F1** on Linux can run the container.
+- **Registry: ghcr.io (decided 2026-10-19).** It's free for public images, so we skip ACR. M6 must replace the ACR that Aspire's App Service environment adds by default with GitHub Container Registry, and confirm App Service **F1** on Linux can pull and run the public image.
 
 ## Reusable lesson
 
