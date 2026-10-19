@@ -10,7 +10,7 @@
     "preview": "vp preview"
   },
   "dependencies": {
-    "@tanstack/ai-react": "0.30.4",
+    "@tanstack/ai-react": "0.31.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
