@@ -386,11 +386,6 @@
         "resolved": "1.0.0",
         "contentHash": "N4KeF3cpcm1PUHym1RmakkzfkEv3GRMyofVv40uXsQhCQeglr2OHNcUk2WOG51AKpGO8ynGpo9M/kFXSzghwug=="
       },
-      "Microsoft.SqlServer.TransactSql.ScriptDom": {
-        "type": "Transitive",
-        "resolved": "180.102.0",
-        "contentHash": "hIE9+a4TUrk1KQY+byb2WioGn6pmR2o03XzFm4kxloPdWio8bJJYfIFhGuveOT3426ZfnNxT6e9hfXb9EA0a9g=="
-      },
       "Microsoft.SqlServer.Types": {
         "type": "Transitive",
         "resolved": "170.1000.7",
@@ -567,6 +562,12 @@
           "Microsoft.Extensions.Http": "10.0.13",
           "Microsoft.Extensions.ServiceDiscovery.Abstractions": "10.11.0"
         }
+      },
+      "Microsoft.SqlServer.TransactSql.ScriptDom": {
+        "type": "CentralTransitive",
+        "requested": "[180.140.0, )",
+        "resolved": "180.140.0",
+        "contentHash": "qdSHJPR3t2mqLcYQ31E9hBhQfuHo34jOtMEOrCKHBNuV+IShlLfDR8/tDzXR7MeI2ZhlZ+8wCVRMACifoAepAA=="
       },
       "OpenTelemetry.Exporter.OpenTelemetryProtocol": {
         "type": "CentralTransitive",
