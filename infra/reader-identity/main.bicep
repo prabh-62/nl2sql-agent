@@ -6,8 +6,8 @@
 @description('Location for the identity.')
 param location string = resourceGroup().location
 
-@description('GitHub repository allowed to sign in as this identity, as owner/name.')
-param githubRepository string
+@description('GitHub repository allowed to sign in as this identity, as it appears in the OIDC token subject. GitHub includes immutable IDs: owner@ownerId/name@repositoryId.')
+param githubSubjectRepository string
 
 resource reader 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: 'nl2sql-reader'
@@ -20,7 +20,7 @@ resource githubMain 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedI
   name: 'github-main'
   properties: {
     issuer: 'https://token.actions.githubusercontent.com'
-    subject: 'repo:${githubRepository}:ref:refs/heads/main'
+    subject: 'repo:${githubSubjectRepository}:ref:refs/heads/main'
     audiences: ['api://AzureADTokenExchange']
   }
 }
@@ -30,7 +30,7 @@ resource githubPullRequests 'Microsoft.ManagedIdentity/userAssignedIdentities/fe
   name: 'github-pull-request'
   properties: {
     issuer: 'https://token.actions.githubusercontent.com'
-    subject: 'repo:${githubRepository}:pull_request'
+    subject: 'repo:${githubSubjectRepository}:pull_request'
     audiences: ['api://AzureADTokenExchange']
   }
   dependsOn: [githubMain]

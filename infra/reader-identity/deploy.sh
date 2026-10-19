@@ -8,11 +8,15 @@ resource_group="${RESOURCE_GROUP:-rg-hemingford-9901}"
 repository="${GITHUB_REPOSITORY:-prabh-62/nl2sql-agent}"
 here="$(cd "$(dirname "$0")" && pwd)"
 
+# GitHub's OIDC subject names the repository with immutable IDs, e.g.
+# repo:octo-org@123/octo-repo@456:ref:refs/heads/main, so a renamed or recreated repo can't sign in.
+subject_repository="$(gh api "repos/$repository" --jq '"\(.owner.login)@\(.owner.id)/\(.name)@\(.id)"')"
+
 outputs="$(az deployment group create \
   --resource-group "$resource_group" \
   --name nl2sql-reader-identity \
   --template-file "$here/main.bicep" \
-  --parameters githubRepository="$repository" \
+  --parameters githubSubjectRepository="$subject_repository" \
   --query properties.outputs --output json)"
 
 client_id="$(jq -r .clientId.value <<<"$outputs")"
