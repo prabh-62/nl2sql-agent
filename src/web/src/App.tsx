@@ -1,7 +1,10 @@
 import { useState, type FormEvent } from "react";
 import { fetchServerSentEvents, useChat } from "@tanstack/ai-react";
 
-const connection = fetchServerSentEvents("/api/agui");
+// Until the persona switcher arrives (M4), every question is asked as the Maple & Bean owner.
+const connection = fetchServerSentEvents("/api/agui", {
+  headers: { "X-Persona": "maple-owner" },
+});
 
 export default function App() {
   const { messages, sendMessage, isLoading, error } = useChat({ connection });
