@@ -6,6 +6,7 @@ SELECT
     l.Name AS LocationName,
     l.City,
     l.TimeZoneIana AS TimeZone,
+    l.Currency,
     l.OpenedOn
 FROM dbo.Locations AS l
 JOIN dbo.Brands AS b ON b.BrandId = l.BrandId;
@@ -25,7 +26,7 @@ EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Name of th
     @level2type = N'COLUMN', @level2name = N'BrandName';
 GO
 
-EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Name of the location, for example "Queen St".',
+EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Name of the location, for example "Queen St W".',
     @level0type = N'SCHEMA', @level0name = N'ai', @level1type = N'VIEW', @level1name = N'Locations',
     @level2type = N'COLUMN', @level2name = N'LocationName';
 GO
@@ -38,6 +39,11 @@ GO
 EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'IANA time zone of the location, for example America/Toronto. All Local* columns in other views use it.',
     @level0type = N'SCHEMA', @level0name = N'ai', @level1type = N'VIEW', @level1name = N'Locations',
     @level2type = N'COLUMN', @level2name = N'TimeZone';
+GO
+
+EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Currency of every price and amount at this location: CAD for Canadian locations, USD for US locations.',
+    @level0type = N'SCHEMA', @level0name = N'ai', @level1type = N'VIEW', @level1name = N'Locations',
+    @level2type = N'COLUMN', @level2name = N'Currency';
 GO
 
 EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Date the location opened.',

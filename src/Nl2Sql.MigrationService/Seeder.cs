@@ -8,7 +8,7 @@ namespace Nl2Sql.MigrationService;
 /// </summary>
 internal static class Seeder
 {
-    public const int SeedVersion = 1;
+    public const int SeedVersion = 2;
 
     private static readonly string[] TablesInDeleteOrder =
         ["Refunds", "Payments", "OrderLineModifiers", "OrderLines", "Orders", "Customers", "MenuItems", "Modifiers", "Sizes", "Locations", "Brands"];

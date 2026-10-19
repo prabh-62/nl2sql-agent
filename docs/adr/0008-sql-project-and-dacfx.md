@@ -25,6 +25,7 @@ Deploy options: `BlockOnPossibleDataLoss`, no dropping of objects, permissions o
 - Write check constraints the way SQL Server stores them (`IN (...)` becomes reversed `OR`s), or DacFx recreates them on every deploy.
 - With `IncludeTransactionalScripts`, a deploy that has to drop and recreate the security policy never exposes the tables without RLS.
 - `DropObjectsNotInSource = false` matters on a shared database: `rasoolpur` also holds unrelated tables.
+- DacFx refuses to rebuild a table that's behind row-level security (`SR0111`, "data motion"). Inserting a column in the middle of a table means a rebuild, so add new columns at the end, which deploys as a plain `ALTER TABLE ... ADD`. We don't turn on `AllowUnsafeRowLevelSecurityDataMovement`.
 
 ## Reusable lesson
 

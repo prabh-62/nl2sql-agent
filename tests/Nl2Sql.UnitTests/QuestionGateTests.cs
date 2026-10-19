@@ -13,12 +13,12 @@ public sealed class QuestionGateTests
     public async Task Lets_a_valid_question_through_with_its_persona()
     {
         var (gate, nextCalled) = Gate();
-        var context = Request("maple-queen-st", "Busiest hour last week?");
+        var context = Request("tim-hortons-queen-st", "Busiest hour last week?");
 
         await gate.InvokeAsync(context);
 
         Assert.True(nextCalled());
-        Assert.Equal("maple-queen-st", context.GetPersona().Id);
+        Assert.Equal("tim-hortons-queen-st", context.GetPersona().Id);
         Assert.Equal(0, context.Request.Body.Position);
     }
 
@@ -43,7 +43,7 @@ public sealed class QuestionGateTests
     public async Task Rejects_questions_over_500_characters()
     {
         var (gate, nextCalled) = Gate();
-        var context = Request("maple-owner", new string('x', QuestionGate.MaxQuestionLength + 1));
+        var context = Request("tim-hortons-owner", new string('x', QuestionGate.MaxQuestionLength + 1));
 
         await gate.InvokeAsync(context);
 
@@ -58,7 +58,7 @@ public sealed class QuestionGateTests
     public async Task Rejects_requests_without_a_question(string body)
     {
         var (gate, nextCalled) = Gate();
-        var context = Request("maple-owner", rawBody: body);
+        var context = Request("tim-hortons-owner", rawBody: body);
 
         await gate.InvokeAsync(context);
 
@@ -73,7 +73,7 @@ public sealed class QuestionGateTests
         var (gate, _) = Gate(quota);
 
         await gate.InvokeAsync(Request("nobody", "Hi"));
-        await gate.InvokeAsync(Request("maple-owner", new string('x', 501)));
+        await gate.InvokeAsync(Request("tim-hortons-owner", new string('x', 501)));
 
         Assert.Equal(1, quota.Remaining("10.0.0.1").Remaining);
     }
@@ -84,9 +84,9 @@ public sealed class QuestionGateTests
         var quota = new QuestionQuota(new QuotaOptions { QuestionsPerClientPerDay = 2, QuestionsPerDay = 10 });
         var (gate, _) = Gate(quota);
 
-        await gate.InvokeAsync(Request("maple-owner", "One"));
-        await gate.InvokeAsync(Request("maple-owner", "Two"));
-        var third = Request("maple-owner", "Three");
+        await gate.InvokeAsync(Request("tim-hortons-owner", "One"));
+        await gate.InvokeAsync(Request("tim-hortons-owner", "Two"));
+        var third = Request("tim-hortons-owner", "Three");
         await gate.InvokeAsync(third);
 
         Assert.Equal(StatusCodes.Status429TooManyRequests, third.Response.StatusCode);
@@ -99,9 +99,9 @@ public sealed class QuestionGateTests
         var quota = new QuestionQuota(new QuotaOptions { QuestionsPerClientPerDay = 10, QuestionsPerDay = 2 });
         var (gate, _) = Gate(quota);
 
-        await gate.InvokeAsync(Request("maple-owner", "One", ip: "10.0.0.1"));
-        await gate.InvokeAsync(Request("maple-owner", "Two", ip: "10.0.0.2"));
-        var third = Request("maple-owner", "Three", ip: "10.0.0.3");
+        await gate.InvokeAsync(Request("tim-hortons-owner", "One", ip: "10.0.0.1"));
+        await gate.InvokeAsync(Request("tim-hortons-owner", "Two", ip: "10.0.0.2"));
+        var third = Request("tim-hortons-owner", "Three", ip: "10.0.0.3");
         await gate.InvokeAsync(third);
 
         Assert.Equal("demo_paused", await ErrorCode(third));
@@ -115,8 +115,8 @@ public sealed class QuestionGateTests
         var quota = new QuestionQuota(new QuotaOptions { QuestionsPerClientPerDay = 1, QuestionsPerDay = 10 });
         var (gate, _) = Gate(quota);
 
-        await gate.InvokeAsync(Request("maple-owner", "One", ip: "10.0.0.1"));
-        var other = Request("maple-owner", "One", ip: "10.0.0.2");
+        await gate.InvokeAsync(Request("tim-hortons-owner", "One", ip: "10.0.0.1"));
+        var other = Request("tim-hortons-owner", "One", ip: "10.0.0.2");
         await gate.InvokeAsync(other);
 
         Assert.Equal(StatusCodes.Status200OK, other.Response.StatusCode);

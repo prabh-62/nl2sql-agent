@@ -21,7 +21,7 @@ EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Menu item 
     @level2type = N'COLUMN', @level2name = N'MenuItemId';
 GO
 
-EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Menu item name as shown to customers, for example "Iced Oat Latte".',
+EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Menu item name as shown to customers, for example "Iced Caffè Latte".',
     @level0type = N'SCHEMA', @level0name = N'ai', @level1type = N'VIEW', @level1name = N'MenuItems',
     @level2type = N'COLUMN', @level2name = N'Name';
 GO
@@ -31,7 +31,7 @@ EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'One of esp
     @level2type = N'COLUMN', @level2name = N'Category';
 GO
 
-EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Drink family, for example latte, cappuccino, americano, cold_brew, chai. Null for food. Hot and iced versions share a family.',
+EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Drink family, for example latte, cappuccino, americano, macchiato, cold_brew, iced_capp, chai. Null for food. Hot and iced versions share a family.',
     @level0type = N'SCHEMA', @level0name = N'ai', @level1type = N'VIEW', @level1name = N'MenuItems',
     @level2type = N'COLUMN', @level2name = N'Family';
 GO
@@ -51,6 +51,6 @@ EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'1 for any 
     @level2type = N'COLUMN', @level2name = N'IsLatte';
 GO
 
-EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Price of the small size before modifiers, in the location''s currency (CAD), excluding tax.',
+EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Price of the small size before modifiers, excluding tax, in the brand''s local currency (see ai.Locations.Currency).',
     @level0type = N'SCHEMA', @level0name = N'ai', @level1type = N'VIEW', @level1name = N'MenuItems',
     @level2type = N'COLUMN', @level2name = N'BasePrice';

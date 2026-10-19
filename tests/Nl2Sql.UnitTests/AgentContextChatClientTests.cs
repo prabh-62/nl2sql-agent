@@ -11,7 +11,7 @@ public sealed class AgentContextChatClientTests
     {
         var inner = new RecordingChatClient();
         var http = new DefaultHttpContext();
-        http.SetPersona(Personas.Find("harbour-owner")!);
+        http.SetPersona(Personas.Find("starbucks-owner")!);
         // 06:00 UTC on Oct 20 is still Oct 19 in Vancouver.
         var client = new AgentContextChatClient(inner, new HttpContextAccessor { HttpContext = http }, new FixedTime(new DateTimeOffset(2026, 10, 20, 6, 0, 0, TimeSpan.Zero)));
 
@@ -19,7 +19,7 @@ public sealed class AgentContextChatClientTests
 
         var first = inner.Messages![0];
         Assert.Equal(ChatRole.System, first.Role);
-        Assert.Contains("Harbour Roast owner", first.Text, StringComparison.Ordinal);
+        Assert.Contains("Starbucks owner", first.Text, StringComparison.Ordinal);
         Assert.Contains("2026-10-19", first.Text, StringComparison.Ordinal);
         Assert.Equal("Revenue last month?", inner.Messages[1].Text);
     }

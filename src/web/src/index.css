@@ -45,3 +45,9 @@ form input {
   flex: 1;
   padding: 0.5rem;
 }
+
+.disclaimer {
+  margin-top: 2rem;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}

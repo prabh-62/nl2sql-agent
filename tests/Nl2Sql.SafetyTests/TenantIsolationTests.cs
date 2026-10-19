@@ -56,7 +56,7 @@ public sealed class TenantIsolationTests
         await using var session = await SafetyDatabase.OpenAsync(TenantScope.Manager(1, 101));
 
         var orders = await session.Connection.ScalarAsync<int>("SELECT COUNT(*) FROM ai.Orders WHERE LocationId = 102;");
-        var revenue = await session.Connection.ScalarAsync<decimal?>("SELECT SUM(NetRevenue) FROM ai.Orders WHERE LocationName = N'King & Bay';");
+        var revenue = await session.Connection.ScalarAsync<decimal?>("SELECT SUM(NetRevenue) FROM ai.Orders WHERE LocationName = N'Union Station';");
 
         Assert.Equal(0, orders);
         Assert.Null(revenue);
@@ -71,7 +71,7 @@ public sealed class TenantIsolationTests
         var brands = await session.Connection.ColumnAsync<string>("SELECT DISTINCT BrandName FROM ai.Locations;");
 
         Assert.Equal(0, orders);
-        Assert.Equal(["Harbour Roast"], brands);
+        Assert.Equal(["Starbucks"], brands);
     }
 
     [Fact]

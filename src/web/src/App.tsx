@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from "react";
 import { fetchServerSentEvents, useChat } from "@tanstack/ai-react";
 
-// Until the persona switcher arrives (M4), every question is asked as the Maple & Bean owner.
+// Until the persona switcher arrives (M4), every question is asked as the Tim Hortons owner.
 const connection = fetchServerSentEvents("/api/agui", {
-  headers: { "X-Persona": "maple-owner" },
+  headers: { "X-Persona": "tim-hortons-owner" },
 });
 
 export default function App() {
@@ -69,6 +69,10 @@ export default function App() {
           {isLoading ? "Thinking…" : "Ask"}
         </button>
       </form>
+      <p className="disclaimer">
+        Demo with invented data. Tim Hortons, Starbucks and Dunkin' are used for illustration only;
+        the numbers don't reflect their business, and this project isn't affiliated with them.
+      </p>
     </main>
   );
 }

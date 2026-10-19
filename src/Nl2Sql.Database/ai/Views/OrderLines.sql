@@ -93,7 +93,7 @@ EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'One of esp
     @level2type = N'COLUMN', @level2name = N'Category';
 GO
 
-EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Drink family, for example latte, cappuccino, americano, cold_brew, chai. Null for food.',
+EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Drink family, for example latte, cappuccino, americano, macchiato, cold_brew, iced_capp, chai. Null for food.',
     @level0type = N'SCHEMA', @level0name = N'ai', @level1type = N'VIEW', @level1name = N'OrderLines',
     @level2type = N'COLUMN', @level2name = N'Family';
 GO

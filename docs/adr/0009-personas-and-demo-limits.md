@@ -8,7 +8,7 @@ The public demo has no real sign-in, runs on a free App Service instance with a 
 
 ## Decision
 
-**Personas instead of sign-in.** The browser sends only a persona ID in an `X-Persona` header (`maple-owner`, `maple-queen-st`, `harbour-owner`, `copper-owner`). The server maps it to a `TenantScope`; a client can never send a brand or location ID. Tools read the persona from the current request (`IHttpContextAccessor`), so every connection they open is scoped to it.
+**Personas instead of sign-in.** The browser sends only a persona ID in an `X-Persona` header (`tim-hortons-owner`, `tim-hortons-queen-st`, `starbucks-owner`, `dunkin-owner`). The server maps it to a `TenantScope`; a client can never send a brand or location ID. Tools read the persona from the current request (`IHttpContextAccessor`), so every connection they open is scoped to it.
 
 **A gate in front of the agent** (`QuestionGate` middleware on `/api/agui`), cheapest check first, so bad requests never cost tokens or quota:
 

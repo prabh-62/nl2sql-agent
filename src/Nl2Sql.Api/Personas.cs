@@ -12,12 +12,13 @@ public static class Personas
 {
     public const string HeaderName = "X-Persona";
 
+    // Real brand names with invented data; none of it describes the real companies.
     public static IReadOnlyList<Persona> All { get; } =
     [
-        new("maple-owner", "Maple & Bean owner", "Sees all 4 Maple & Bean locations in the Toronto area.", TenantScope.Owner(1), "America/Toronto"),
-        new("maple-queen-st", "Maple & Bean Queen St manager", "Sees only the Queen St location.", TenantScope.Manager(1, 101), "America/Toronto"),
-        new("harbour-owner", "Harbour Roast owner", "Sees all 3 Harbour Roast locations in Vancouver.", TenantScope.Owner(2), "America/Vancouver"),
-        new("copper-owner", "Copper Kettle owner", "Sees both Copper Kettle locations in Toronto.", TenantScope.Owner(3), "America/Toronto"),
+        new("tim-hortons-owner", "Tim Hortons owner", "Sees all 4 Tim Hortons locations in the Toronto area. Amounts are in CAD.", TenantScope.Owner(1), "America/Toronto"),
+        new("tim-hortons-queen-st", "Tim Hortons Queen St W manager", "Sees only the Queen St W location in Toronto. Amounts are in CAD.", TenantScope.Manager(1, 101), "America/Toronto"),
+        new("starbucks-owner", "Starbucks owner", "Sees all 3 Starbucks locations in Vancouver. Amounts are in CAD.", TenantScope.Owner(2), "America/Vancouver"),
+        new("dunkin-owner", "Dunkin' owner", "Sees both Dunkin' locations in Boston. Amounts are in USD.", TenantScope.Owner(3), "America/New_York"),
     ];
 
     public static Persona? Find(string? id) =>
