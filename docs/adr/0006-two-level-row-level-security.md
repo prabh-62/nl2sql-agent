@@ -34,7 +34,7 @@ Every tenant table carries its own `BrandId` and `LocationId` columns, so predic
 
 - Users created by DacFx get **no `CONNECT`** permission, and `EXECUTE AS USER` then fails with error 916. The project grants it explicitly.
 - With `@read_only = 1`, the reader can't change `BrandId` or `LocationId`, and can't `REVERT` without the cookie.
-- **A key set to `NULL` isn't locked by `@read_only`.** Our first design used `LocationId = NULL` for owners; the safety tests caught that the key could then be set later. Owners now get `0`, and the predicate treats a missing key as no access.
+- **A `NULL` value sent from SqlClient as a command parameter wasn't locked by `@read_only`.** Our first design used `LocationId = NULL` for owners, passed as a parameter; the safety tests caught that the key could be set again afterwards. A follow-up check showed a literal `NULL` or a typed T-SQL variable holding `NULL` *is* locked, so the behaviour depends on how the null arrives. We don't rely on it: owners now get `0`, and the predicate treats a missing key as no access.
 - Pooled connections come back with no session context (the pool's reset clears it). The impersonation is reverted explicitly with the cookie before that; if the revert fails, the pool is cleared rather than reused.
 - **Admins are filtered too.** RLS has no exemption for `dbo`, so an admin with no session context sees no tenant rows. The seeder therefore checks `dbo.SeedHistory` (not a tenant table) and switches the policy off inside its transaction while it deletes old data.
 

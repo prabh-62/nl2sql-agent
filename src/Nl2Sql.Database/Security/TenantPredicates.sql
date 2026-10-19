@@ -1,8 +1,8 @@
 -- Session context is set once per connection with @read_only = 1:
 --   BrandId    required; no brand means no rows.
 --   LocationId 0 for a brand owner (whole brand), the location's ID for a location manager.
---              Required too: a missing key fails closed. (Not null for owners, because a key set to
---              NULL isn't locked by @read_only and could be set later.)
+--              Required too: a missing key fails closed. (Not NULL for owners: a NULL sent as a
+--              command parameter wasn't locked by @read_only in our tests, so it could be set later.)
 
 CREATE FUNCTION security.fn_brand_access(@BrandId int)
 RETURNS TABLE

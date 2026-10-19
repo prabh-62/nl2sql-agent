@@ -54,7 +54,7 @@ public static partial class ReaderConnection
                     EXEC sys.sp_set_session_context @key = N'LocationId', @value = @LocationId, @read_only = 1;
                     """;
                 context.Parameters.AddWithValue("@BrandId", scope.BrandId);
-                // 0 means the whole brand. Never NULL: a NULL key isn't locked by @read_only.
+                // 0 means the whole brand. Never NULL: a NULL parameter isn't locked by @read_only.
                 context.Parameters.AddWithValue("@LocationId", scope.LocationId ?? 0);
                 await context.ExecuteNonQueryAsync(cancellationToken);
             }
