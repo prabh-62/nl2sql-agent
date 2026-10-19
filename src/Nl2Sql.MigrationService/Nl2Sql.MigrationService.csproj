@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nl2Sql.ServiceDefaults\Nl2Sql.ServiceDefaults.csproj" />
+    <!-- Build the dacpac first and ship it next to the service. -->
+    <ProjectReference Include="..\Nl2Sql.Database\Nl2Sql.Database.sqlproj" ReferenceOutputAssembly="false" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <PackageReference Include="Microsoft.Data.SqlClient.Extensions.Azure" />
+    <PackageReference Include="Microsoft.SqlServer.DacFx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Nl2Sql.UnitTests" />
+  </ItemGroup>
+
+  <Target Name="CopyDacpac" AfterTargets="Build">
+    <Copy SourceFiles="..\Nl2Sql.Database\bin\$(Configuration)\Nl2Sql.Database.dacpac" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

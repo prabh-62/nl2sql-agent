@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Nl2Sql.Api\Nl2Sql.Api.csproj" />
+    <ProjectReference Include="..\Nl2Sql.MigrationService\Nl2Sql.MigrationService.csproj" />
   </ItemGroup>
 
   <ItemGroup>

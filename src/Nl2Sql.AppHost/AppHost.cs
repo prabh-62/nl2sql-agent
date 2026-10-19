@@ -15,8 +15,22 @@ var db = builder.AddConnectionString("db", ReferenceExpression.Create(
 var foundry = builder.AddConnectionString("foundry", ReferenceExpression.Create(
     $"Endpoint=https://{foundryName}.cognitiveservices.azure.com/;Deployment={chatDeployment}"));
 
+// Deploys the schema (dacpac), adds the reader identity, loads the seed, then exits.
+var migrations = builder.AddProject<Projects.Nl2Sql_MigrationService>("migrations")
+    .WithReference(db);
+
+// The nl2sql-reader managed identity (infra/reader-identity) that App Service and CI sign in as.
+// Its client ID isn't secret; the migration service adds it to the nl2sql_reader role.
+if (builder.Configuration["ReaderIdentity:ClientId"] is { Length: > 0 } readerClientId)
+{
+    migrations
+        .WithEnvironment("ReaderIdentity__Name", "nl2sql-reader")
+        .WithEnvironment("ReaderIdentity__ClientId", readerClientId);
+}
+
 var api = builder.AddProject<Projects.Nl2Sql_Api>("api")
     .WithReference(db)
+    .WaitForCompletion(migrations)
     .WithReference(foundry)
     .WithHttpHealthCheck("/health")
     .WithExternalHttpEndpoints();
@@ -26,6 +40,10 @@ if (builder.ExecutionContext.IsRunMode)
     // Locally, only try developer credentials (Azure CLI etc.). Otherwise DefaultAzureCredential
     // first probes the managed-identity endpoint, which isn't there and adds seconds per token.
     api.WithEnvironment("AZURE_TOKEN_CREDENTIALS", "dev");
+    migrations.WithEnvironment("AZURE_TOKEN_CREDENTIALS", "dev");
+
+    // You sign in as an Entra admin locally, so generated SQL runs as this reader user instead.
+    api.WithEnvironment("Database__ImpersonateUser", "nl2sql_reader_dev");
 }
 
 builder.AddViteApp("web", "../web")
