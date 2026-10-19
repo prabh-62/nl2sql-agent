@@ -4,6 +4,7 @@ SELECT
     ol.OrderLineId,
     ol.OrderId,
     o.LocationId,
+    l.Name AS LocationName,
     o.Channel,
     CAST(t.PlacedAtLocal AS date) AS LocalDate,
     DATEPART(hour, t.PlacedAtLocal) AS LocalHour,
@@ -55,6 +56,11 @@ GO
 EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Location where the order was placed.',
     @level0type = N'SCHEMA', @level0name = N'ai', @level1type = N'VIEW', @level1name = N'OrderLines',
     @level2type = N'COLUMN', @level2name = N'LocationId';
+GO
+
+EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Name of the location where the order was placed.',
+    @level0type = N'SCHEMA', @level0name = N'ai', @level1type = N'VIEW', @level1name = N'OrderLines',
+    @level2type = N'COLUMN', @level2name = N'LocationName';
 GO
 
 EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'How the order was placed: mobile, in_store or delivery.',
