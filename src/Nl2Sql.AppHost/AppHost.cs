@@ -29,6 +29,7 @@ if (builder.ExecutionContext.IsRunMode)
 }
 
 builder.AddViteApp("web", "../web")
+    .WithPnpm()
     .WithReference(api)
     .WaitFor(api);
 
