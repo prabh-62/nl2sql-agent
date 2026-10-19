@@ -11,5 +11,6 @@ Each record explains one decision: the context, what we chose, what it costs, an
 | [0006](0006-two-level-row-level-security.md) | Two-level row-level security with read-only session context | Accepted |
 | [0007](0007-reuse-existing-azure-resources.md) | Reference existing Azure SQL and Foundry; don't let Aspire provision them | Accepted |
 | [0008](0008-sql-project-and-dacfx.md) | Schema as a SQL project, deployed with DacFx | Accepted |
+| [0009](0009-personas-and-demo-limits.md) | Demo personas, agent limits and the public demo's quota | Accepted |
 
 Numbers are reserved for decisions still to be written (0003 App Service hosting).

@@ -16,7 +16,8 @@ Letting a model read the raw schema (`dbo` tables, `INFORMATION_SCHEMA`) means i
 
 - With 7 views the whole catalog would fit in the system prompt. We keep the tools anyway, because they scale to large catalogs; M5 evals compare both modes on accuracy, tokens and latency.
 - The first end-to-end runs show the model calling `list_views` → `describe_view` → `get_examples` → `run_query`, and copying the examples' rules (for example `NetRevenue`, not `Subtotal`).
-- Observed in testing: asked about "September", the model first guessed the year from its training data, got no rows, and corrected itself. M3 should give the agent today's date.
+- Observed in testing: asked about "September", the model first guessed the year from its training data, got no rows, and corrected itself. Since M3 the agent gets today's date ([0009](0009-personas-and-demo-limits.md)).
+- Also observed: the model looked for `LocationName` on `ai.OrderLines`, got an error and joined to `ai.Orders` instead. M3 added `LocationName` to `ai.OrderLines` and `ai.Refunds`; denormalizing the semantic layer for the questions people actually ask saves round trips.
 
 ## Reusable lesson
 
