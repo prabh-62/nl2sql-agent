@@ -46,7 +46,7 @@ EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Name of th
     @level2type = N'COLUMN', @level2name = N'LocationName';
 GO
 
-EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Customer who placed the order. Null for guest checkouts.',
+EXEC sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Customer account that placed the order, whether or not it is a loyalty member. Null for guest checkouts. For loyalty members, also filter IsLoyaltyMember = 1.',
     @level0type = N'SCHEMA', @level0name = N'ai', @level1type = N'VIEW', @level1name = N'Orders',
     @level2type = N'COLUMN', @level2name = N'CustomerId';
 GO

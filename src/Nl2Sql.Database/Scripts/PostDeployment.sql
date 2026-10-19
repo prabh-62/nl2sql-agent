@@ -23,12 +23,12 @@ ORDER BY NetRevenue DESC;',
         N'Revenue questions use NetRevenue: after refunds, excluding tax and tips. "Last month" is the previous calendar month.'),
     (3, N'Oat milk share of lattes, month over month',
         N'SELECT DATEFROMPARTS(YEAR(LocalDate), MONTH(LocalDate), 1) AS Month,
-       CAST(AVG(CASE WHEN MilkType = ''oat'' THEN 1.0 ELSE 0.0 END) AS decimal(5, 3)) AS OatShare
+       CAST(1.0 * SUM(CASE WHEN MilkType = ''oat'' THEN Quantity ELSE 0 END) / NULLIF(SUM(Quantity), 0) AS decimal(5, 3)) AS OatShare
 FROM ai.OrderLines
 WHERE IsLatte = 1
 GROUP BY DATEFROMPARTS(YEAR(LocalDate), MONTH(LocalDate), 1)
 ORDER BY Month;',
-        N'IsLatte covers hot and iced lattes. MilkType is on ai.OrderLines.'),
+        N'IsLatte covers hot and iced lattes. MilkType is on ai.OrderLines. Shares of drinks count items (SUM(Quantity)), not order lines.'),
     (4, N'Top 5 drinks by net revenue this quarter',
         N'SELECT TOP (5) MenuItemName, SUM(LineNetRevenue) AS NetRevenue
 FROM ai.OrderLines

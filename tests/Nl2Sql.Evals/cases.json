@@ -132,7 +132,7 @@
       "persona": "starbucks-owner",
       "group": "paraphrase",
       "question": "Month by month, what fraction of our lattes are made with oat milk?",
-      "sql": "SELECT DATEFROMPARTS(YEAR(LocalDate), MONTH(LocalDate), 1) AS Month, AVG(CASE WHEN MilkType = 'oat' THEN 1.0 ELSE 0.0 END) AS OatShare FROM ai.OrderLines WHERE IsLatte = 1 GROUP BY DATEFROMPARTS(YEAR(LocalDate), MONTH(LocalDate), 1);"
+      "sql": "SELECT DATEFROMPARTS(YEAR(LocalDate), MONTH(LocalDate), 1) AS Month, 1.0 * SUM(CASE WHEN MilkType = 'oat' THEN Quantity ELSE 0 END) / NULLIF(SUM(Quantity), 0) AS OatShare FROM ai.OrderLines WHERE IsLatte = 1 GROUP BY DATEFROMPARTS(YEAR(LocalDate), MONTH(LocalDate), 1);"
     },
     {
       "id": "paraphrase-top-drinks",
