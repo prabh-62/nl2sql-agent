@@ -1,4 +1,4 @@
-using Nl2Sql.Api;
+using Nl2Sql.Agent;
 
 namespace Nl2Sql.UnitTests;
 

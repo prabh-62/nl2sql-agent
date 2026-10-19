@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace Nl2Sql.Api;
+namespace Nl2Sql.Agent;
 
 /// <summary>
 /// A chart the model suggests for a query's result. The UI draws it with Recharts after validating it

@@ -1,12 +1,12 @@
 using Microsoft.Extensions.AI;
 
-namespace Nl2Sql.Api;
+namespace Nl2Sql.Agent;
 
 /// <summary>
 /// Tells the model, on every request, who it's answering for and what "today" is in their time zone.
 /// Without the date, the model assumes the year from its training data ("September" became 2024).
 /// </summary>
-public sealed class AgentContextChatClient(IChatClient inner, IHttpContextAccessor httpContextAccessor, TimeProvider time)
+public sealed class AgentContextChatClient(IChatClient inner, IAgentRunAccessor runs, TimeProvider time)
     : DelegatingChatClient(inner)
 {
     public override Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessage> messages, ChatOptions? options = null, CancellationToken cancellationToken = default) =>
@@ -17,8 +17,8 @@ public sealed class AgentContextChatClient(IChatClient inner, IHttpContextAccess
 
     private IEnumerable<ChatMessage> WithContext(IEnumerable<ChatMessage> messages)
     {
-        var persona = httpContextAccessor.HttpContext?.GetPersona()
-            ?? throw new InvalidOperationException("No request context.");
+        var persona = runs.Current?.Persona
+            ?? throw new InvalidOperationException("No question is being answered.");
         var zone = TimeZoneInfo.FindSystemTimeZoneById(persona.TimeZone);
         var now = TimeZoneInfo.ConvertTime(time.GetUtcNow(), zone);
 

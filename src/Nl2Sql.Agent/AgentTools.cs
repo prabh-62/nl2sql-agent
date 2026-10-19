@@ -2,28 +2,25 @@ using System.ComponentModel;
 using System.Text.Json;
 using Nl2Sql.Data;
 
-namespace Nl2Sql.Api;
+namespace Nl2Sql.Agent;
+
+/// <param name="ConnectionString">The database, signed in as the reader identity or as a developer.</param>
+/// <param name="ImpersonateUser">Locally, the reader user to switch to (a developer signs in as an admin); null in Azure and CI.</param>
+public sealed record AgentToolsOptions(string ConnectionString, string? ImpersonateUser);
 
 /// <summary>
-/// The tools the agent can call. Each opens a reader connection scoped to the current request's
+/// The tools the agent can call. Each opens a reader connection scoped to the current question's
 /// persona, so the model only ever sees what that tenant's reader can see.
 /// </summary>
-public sealed class AgentTools(IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
+public sealed class AgentTools(AgentToolsOptions options, IAgentRunAccessor runs)
 {
     /// <summary>Failed queries allowed per question before the model must give up and say so.</summary>
     public const int MaxFailedQueries = 2;
-
-    private static readonly object FailedQueriesKey = new();
 
     // The model sees at most this many rows; the full result (up to QueryRunner.MaxRows) is for the UI.
     private const int RowsForModel = 50;
 
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull };
-
-    private readonly string _connectionString = configuration.GetConnectionString("db")
-        ?? throw new InvalidOperationException("Connection string 'db' is missing.");
-
-    private readonly string? _impersonateUser = configuration["Database:ImpersonateUser"];
 
     [Description("Lists the views you can query, with what each one contains. Start here.")]
     public async Task<string> ListViewsAsync(CancellationToken cancellationToken)
@@ -61,8 +58,8 @@ public sealed class AgentTools(IConfiguration configuration, IHttpContextAccesso
         [Description("Optional chart of this query's result.")] ChartSuggestion? chart,
         CancellationToken cancellationToken)
     {
-        var request = Request;
-        var failures = request.Items[FailedQueriesKey] as int? ?? 0;
+        var run = Run;
+        var failures = run.FailedQueries;
         if (failures >= MaxFailedQueries)
         {
             return JsonSerializer.Serialize(new { error = "No retries left. Tell the user you couldn't answer this question, and why." }, Json);
@@ -72,10 +69,11 @@ public sealed class AgentTools(IConfiguration configuration, IHttpContextAccesso
         var result = await QueryRunner.RunAsync(session, sql, cancellationToken);
         if (!result.Succeeded)
         {
-            request.Items[FailedQueriesKey] = failures + 1;
+            run.FailedQueries = failures + 1;
             return JsonSerializer.Serialize(new { error = result.Error, retriesLeft = MaxFailedQueries - failures - 1 }, Json);
         }
 
+        run.Queries.Add(result);
         var rows = result.Rows.Take(RowsForModel).ToArray();
 
         // Checked here, in the same round trip as the query, so a chart costs no extra model call.
@@ -93,9 +91,36 @@ public sealed class AgentTools(IConfiguration configuration, IHttpContextAccesso
         }, Json);
     }
 
-    private HttpContext Request => httpContextAccessor.HttpContext
-        ?? throw new InvalidOperationException("Tools only run inside a request.");
+    /// <summary>
+    /// The catalog as text for the system prompt (catalog mode): every ai view with its columns,
+    /// types and descriptions. Metadata isn't tenant data, so any persona's reader sees the same.
+    /// </summary>
+    public async Task<string> DescribeCatalogAsync(CancellationToken cancellationToken)
+    {
+        await using var session = await ReaderConnection.OpenAsync(options.ConnectionString, Personas.All[0].Scope, options.ImpersonateUser, cancellationToken);
+        var text = new System.Text.StringBuilder();
+        foreach (var view in await Catalog.ListViewsAsync(session, cancellationToken))
+        {
+            text.Append("### ").AppendLine(view.Name);
+            if (view.Description is not null)
+            {
+                text.AppendLine(view.Description);
+            }
+
+            foreach (var column in await Catalog.DescribeViewAsync(session, view.Name, cancellationToken) ?? [])
+            {
+                text.Append("- ").Append(column.Name).Append(" (").Append(column.Type).Append(column.IsNullable ? ", nullable" : "").Append("): ")
+                    .AppendLine(column.Description);
+            }
+
+            text.AppendLine();
+        }
+
+        return text.ToString();
+    }
+
+    private AgentRun Run => runs.Current ?? throw new InvalidOperationException("Tools only run while answering a question.");
 
     private Task<ReaderSession> OpenAsync(CancellationToken cancellationToken) =>
-        ReaderConnection.OpenAsync(_connectionString, Request.GetPersona().Scope, _impersonateUser, cancellationToken);
+        ReaderConnection.OpenAsync(options.ConnectionString, Run.Persona.Scope, options.ImpersonateUser, cancellationToken);
 }

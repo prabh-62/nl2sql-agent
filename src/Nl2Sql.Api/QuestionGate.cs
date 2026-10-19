@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Nl2Sql.Agent;
 
 namespace Nl2Sql.Api;
 
@@ -61,7 +62,7 @@ public sealed class QuestionGate(RequestDelegate next, QuestionQuota quota, ILog
                 return;
         }
 
-        context.SetPersona(persona);
+        context.SetAgentRun(new AgentRun(persona));
         Log.Question(logger, persona.Id, question.Length);
         await next(context);
     }
@@ -97,14 +98,19 @@ public sealed class QuestionGate(RequestDelegate next, QuestionQuota quota, ILog
     }
 }
 
-public static class RequestPersonaExtensions
+public static class AgentRunHttpExtensions
 {
     private static readonly object Key = new();
 
-    public static void SetPersona(this HttpContext context, Persona persona) => context.Items[Key] = persona;
+    public static void SetAgentRun(this HttpContext context, AgentRun run) => context.Items[Key] = run;
 
-    public static Persona GetPersona(this HttpContext context) =>
-        context.Items[Key] as Persona ?? throw new InvalidOperationException("No persona for this request.");
+    public static AgentRun? GetAgentRun(this HttpContext context) => context.Items[Key] as AgentRun;
+}
+
+/// <summary>In the API, a question is one HTTP request, so its <see cref="AgentRun"/> lives on the request.</summary>
+public sealed class HttpAgentRunAccessor(IHttpContextAccessor httpContextAccessor) : IAgentRunAccessor
+{
+    public AgentRun? Current => httpContextAccessor.HttpContext?.GetAgentRun();
 }
 
 internal static partial class Log

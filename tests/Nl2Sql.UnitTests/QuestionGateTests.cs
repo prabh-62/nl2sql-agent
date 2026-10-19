@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
+using Nl2Sql.Agent;
 using Nl2Sql.Api;
 
 namespace Nl2Sql.UnitTests;
@@ -18,7 +19,7 @@ public sealed class QuestionGateTests
         await gate.InvokeAsync(context);
 
         Assert.True(nextCalled());
-        Assert.Equal("tim-hortons-queen-st", context.GetPersona().Id);
+        Assert.Equal("tim-hortons-queen-st", context.GetAgentRun()?.Persona.Id);
         Assert.Equal(0, context.Request.Body.Position);
     }
 

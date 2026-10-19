@@ -1,12 +1,8 @@
-using System.ClientModel.Primitives;
-using System.Data.Common;
 using Azure.Identity;
-using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Hosting.AGUI.AspNetCore;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.Extensions.AI;
+using Nl2Sql.Agent;
 using Nl2Sql.Api;
-using OpenAI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,14 +11,19 @@ builder.AddServiceDefaults();
 // Health checks would keep waking the serverless free-tier database, burning its monthly vCore allowance.
 builder.AddSqlServerClient("db", settings => settings.DisableHealthChecks = true);
 
+var agentOptions = builder.Configuration.GetSection("Agent").Get<AgentOptions>() ?? new AgentOptions();
+
 builder.Services.AddProblemDetails();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton(builder.Configuration.GetSection("Quota").Get<QuotaOptions>() ?? new QuotaOptions());
 builder.Services.AddSingleton<QuestionQuota>();
-builder.Services.AddAGUIServer();
+builder.Services.AddSingleton<IAgentRunAccessor, HttpAgentRunAccessor>();
+builder.Services.AddSingleton(new AgentToolsOptions(
+    builder.Configuration.GetConnectionString("db") ?? throw new InvalidOperationException("Connection string 'db' is missing."),
+    builder.Configuration["Database:ImpersonateUser"]));
 builder.Services.AddSingleton<AgentTools>();
-builder.Services.AddSingleton(services => CreateChatClient(builder.Configuration, builder.Environment, services));
+builder.Services.AddAGUIServer();
 
 // Behind App Service the client IP arrives in X-Forwarded-For. Its front end appends the real
 // address last, so trusting exactly one hop can't be spoofed by a client-supplied header.
@@ -39,45 +40,22 @@ var app = builder.Build();
 app.UseForwardedHeaders();
 app.UseExceptionHandler();
 
-var tools = app.Services.GetRequiredService<AgentTools>();
-var agent = new ChatClientAgent(
-    app.Services.GetRequiredService<IChatClient>(),
-    new ChatClientAgentOptions
-    {
-        Name = "nl2sql",
-        // The chat client below already has its own function-invocation loop with our limits.
-        UseProvidedChatClientAsIs = true,
-        ChatOptions = new ChatOptions
-        {
-            Instructions = """
-                You answer questions from café owners and managers about their coffee-ordering business by
-                querying a SQL Server database (T-SQL).
-
-                - Only the views in schema ai exist for you. Call list_views, then describe_view for the views
-                  you need. Never guess column names.
-                - Call get_examples with the user's question and follow the patterns it returns, especially the
-                  business rules in their notes (net revenue, local time, what counts as a latte or a customer).
-                - Call describe_view and get_examples in the same turn to save time.
-                - Answer with run_query: one SELECT, two-part names (ai.Orders). If it returns an error, fix the
-                  query and try again; you have 2 retries.
-                - Pass a chart to run_query when it helps: line for a trend over time, bar to compare a few
-                  categories. Order the rows the way they should be plotted. No chart for single numbers.
-                - The data is already limited to what this user may see. Never filter by brand or location
-                  unless the user asks about a specific location.
-                - Answer in plain language in 2 to 4 sentences, with the few numbers that matter (short markdown
-                  is fine). The user sees the full table and the chart under your answer, so never list every row. If the question isn't about the data,
-                  or asks you to change data, say you can only answer questions about it.
-                """,
-            MaxOutputTokens = builder.Configuration.GetValue("Agent:MaxOutputTokens", 2000),
-            Tools =
-            [
-                AIFunctionFactory.Create(tools.ListViewsAsync, name: "list_views"),
-                AIFunctionFactory.Create(tools.DescribeViewAsync, name: "describe_view"),
-                AIFunctionFactory.Create(tools.GetExamplesAsync, name: "get_examples"),
-                AIFunctionFactory.Create(tools.RunQueryAsync, name: "run_query"),
-            ],
-        },
-    },
+// Entra only: Azure CLI login locally, managed identity in Azure. Key auth is disabled on Foundry.
+var model = AgentFactory.CreateFoundryChatClient(
+    builder.Configuration.GetConnectionString("foundry") ?? throw new InvalidOperationException("Connection string 'foundry' is missing."),
+    new DefaultAzureCredential());
+var pipeline = AgentFactory.BuildPipeline(
+    model,
+    app.Services.GetRequiredService<IAgentRunAccessor>(),
+    app.Services.GetRequiredService<TimeProvider>(),
+    agentOptions,
+    builder.Environment.ApplicationName,
+    recordSensitiveData: builder.Environment.IsDevelopment(),
+    app.Services);
+var agent = await AgentFactory.CreateAsync(
+    pipeline,
+    app.Services.GetRequiredService<AgentTools>(),
+    agentOptions,
     app.Services.GetRequiredService<ILoggerFactory>(),
     app.Services);
 
@@ -97,37 +75,4 @@ app.MapGet("/api/quota", (HttpContext context, QuestionQuota quota) =>
 app.MapDefaultEndpoints();
 app.UseFileServer();
 
-app.Run();
-
-static IChatClient CreateChatClient(IConfiguration configuration, IHostEnvironment environment, IServiceProvider services)
-{
-    // "Endpoint=https://<resource>.cognitiveservices.azure.com/;Deployment=<name>", set by the AppHost.
-    var settings = new DbConnectionStringBuilder
-    {
-        ConnectionString = configuration.GetConnectionString("foundry")
-            ?? throw new InvalidOperationException("Connection string 'foundry' is missing."),
-    };
-    var endpoint = new Uri(new Uri((string)settings["Endpoint"]), "openai/v1/");
-    var deployment = (string)settings["Deployment"];
-
-    // Entra only: Azure CLI login locally, managed identity in Azure. Key auth is disabled on the resource.
-    var authentication = new BearerTokenPolicy(new DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default");
-
-    // The Responses API, not Chat Completions: reasoning models such as gpt-6-luna only accept
-    // function tools there.
-#pragma warning disable OPENAI001 // Token-credential constructor and Responses client are marked experimental in the OpenAI SDK.
-    var client = new OpenAIClient(authentication, new OpenAIClientOptions { Endpoint = endpoint });
-    var responses = client.GetResponsesClient().AsIChatClient(deployment);
-#pragma warning restore OPENAI001
-
-    return responses
-        .AsBuilder()
-        // Outermost: who the user is and today's date, once per question.
-        .Use(inner => new AgentContextChatClient(inner, services.GetRequiredService<IHttpContextAccessor>(), services.GetRequiredService<TimeProvider>()))
-        // At most 5 model round trips per question; the last one can't call tools, so it must answer.
-        .UseFunctionInvocation(configure: invoker => invoker.MaximumIterationsPerRequest = configuration.GetValue("Agent:MaxIterations", 5))
-        .UseOpenTelemetry(
-            sourceName: environment.ApplicationName,
-            configure: telemetry => telemetry.EnableSensitiveData = environment.IsDevelopment())
-        .Build(services);
-}
+await app.RunAsync();

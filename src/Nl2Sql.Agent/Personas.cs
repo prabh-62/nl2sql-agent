@@ -1,6 +1,6 @@
 using Nl2Sql.Data;
 
-namespace Nl2Sql.Api;
+namespace Nl2Sql.Agent;
 
 /// <summary>
 /// Demo personas instead of real sign-in. The browser only ever sends a persona ID; the server maps
