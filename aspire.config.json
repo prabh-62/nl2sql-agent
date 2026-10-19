@@ -1,0 +1,5 @@
+{
+  "appHost": {
+    "path": "src/Nl2Sql.AppHost/Nl2Sql.AppHost.csproj"
+  }
+}

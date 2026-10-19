@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Nl2Sql.Api/Nl2Sql.Api.csproj" />
+    <Project Path="src/Nl2Sql.AppHost/Nl2Sql.AppHost.csproj" />
+    <Project Path="src/Nl2Sql.ServiceDefaults/Nl2Sql.ServiceDefaults.csproj" />
+  </Folder>
+</Solution>
