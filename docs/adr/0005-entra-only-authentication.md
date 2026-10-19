@@ -14,14 +14,14 @@ Use Microsoft Entra ID for every connection, locally and in Azure:
 
 - **Locally:** the developer's `az login`, through `DefaultAzureCredential`. The AppHost sets `AZURE_TOKEN_CREDENTIALS=dev` for the API in run mode so it only tries developer credentials.
 - **In Azure:** the App Service managed identity.
-- **CI (later milestones):** GitHub OIDC federated credentials.
+- **CI:** GitHub OIDC, signed in as the `nl2sql-reader` managed identity (`infra/reader-identity`).
 - **No SQL container.** Local development uses the existing Azure SQL database (see [0007](0007-reuse-existing-azure-resources.md)), with `Authentication=Active Directory Default` in the connection string.
 
 ## Consequences
 
 - Nobody can clone and run the project without their own Azure SQL database and Foundry resource.
 - The serverless free-tier database auto-pauses. The first query after a pause waits while it resumes (about a minute), and anything that polls the database keeps it awake and uses the free monthly allowance. So the API turns off Aspire's SQL health check.
-- Locally the developer is the Entra admin, so testing the read-only principal needs a separate approach. That's decided in M1.
+- Locally the developer is the Entra admin, so generated SQL switches to a reader user for each query (see [0006](0006-two-level-row-level-security.md)).
 
 ## Reusable lesson
 
