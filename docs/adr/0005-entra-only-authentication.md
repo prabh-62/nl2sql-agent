@@ -26,3 +26,5 @@ Use Microsoft Entra ID for every connection, locally and in Azure:
 ## Reusable lesson
 
 Without `AZURE_TOKEN_CREDENTIALS=dev`, `DefaultAzureCredential` on a laptop first probes the managed-identity endpoint (`169.254.169.254`), which fails slowly and shows up as exceptions in traces. Set it in the AppHost for local runs. And disable database health checks against serverless databases you don't want kept awake.
+
+GitHub's OIDC token subject names the repository with immutable IDs (`repo:owner@ownerId/name@repoId:ref:refs/heads/main`), not just `owner/name`. Federated credentials must match that exactly; `infra/reader-identity/deploy.sh` reads the IDs from the GitHub API.
