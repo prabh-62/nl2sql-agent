@@ -80,8 +80,7 @@ jobs:
           cache: true
       - name: Check formatting, lint and types
         run: vp check
-      # Remove --passWithNoTests once the first web tests land (M4).
       - name: Test
-        run: vp test --passWithNoTests
+        run: vp test
       - name: Build
         run: vp build
