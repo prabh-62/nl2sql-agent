@@ -2,6 +2,15 @@
   <Folder Name="/src/">
     <Project Path="src/Nl2Sql.Api/Nl2Sql.Api.csproj" />
     <Project Path="src/Nl2Sql.AppHost/Nl2Sql.AppHost.csproj" />
+    <Project Path="src/Nl2Sql.Data/Nl2Sql.Data.csproj" />
+    <Project Path="src/Nl2Sql.Database/Nl2Sql.Database.sqlproj">
+      <Build />
+    </Project>
+    <Project Path="src/Nl2Sql.MigrationService/Nl2Sql.MigrationService.csproj" />
     <Project Path="src/Nl2Sql.ServiceDefaults/Nl2Sql.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Nl2Sql.SafetyTests/Nl2Sql.SafetyTests.csproj" />
+    <Project Path="tests/Nl2Sql.UnitTests/Nl2Sql.UnitTests.csproj" />
   </Folder>
 </Solution>
