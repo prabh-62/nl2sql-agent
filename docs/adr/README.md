@@ -6,6 +6,7 @@ Each record explains one decision: the context, what we chose, what it costs, an
 |---|---|---|
 | [0001](0001-semantic-layer-and-discovery-tools.md) | A curated semantic layer with discovery tools | Accepted |
 | [0002](0002-deterministic-sql-guard.md) | A deterministic SQL guard plus a read-only user, not a classifier | Accepted |
+| [0003](0003-app-service-f1-with-bicep.md) | App Service F1, deployed with our own Bicep from GitHub Actions | Accepted |
 | [0004](0004-agui-hosting-and-tanstack-ai.md) | AG-UI via Microsoft Agent Framework hosting, consumed by TanStack AI; shadcn/ui and AI Elements without the Vercel AI SDK | Accepted |
 | [0005](0005-entra-only-authentication.md) | Entra-only authentication everywhere, no SQL logins | Accepted |
 | [0006](0006-two-level-row-level-security.md) | Two-level row-level security with read-only session context | Accepted |
@@ -15,4 +16,3 @@ Each record explains one decision: the context, what we chose, what it costs, an
 | [0010](0010-charts-from-run-query.md) | Charts are suggested in the same call as the query | Accepted |
 | [0011](0011-evals-by-result-set.md) | Evals compare result sets, per model and catalog mode | Accepted |
 
-Numbers are reserved for decisions still to be written (0003 App Service hosting).
