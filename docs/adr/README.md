@@ -13,5 +13,6 @@ Each record explains one decision: the context, what we chose, what it costs, an
 | [0008](0008-sql-project-and-dacfx.md) | Schema as a SQL project, deployed with DacFx | Accepted |
 | [0009](0009-personas-and-demo-limits.md) | Demo personas, agent limits and the public demo's quota | Accepted |
 | [0010](0010-charts-from-run-query.md) | Charts are suggested in the same call as the query | Accepted |
+| [0011](0011-evals-by-result-set.md) | Evals compare result sets, per model and catalog mode | Accepted |
 
 Numbers are reserved for decisions still to be written (0003 App Service hosting).
