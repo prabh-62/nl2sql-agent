@@ -1,5 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
+  <!-- App Service only has .NET 11 RC1 (we need RC2), so production is published self-contained
+       for linux-x64. Declared here so the lock files cover that runtime too. -->
+  <PropertyGroup>
+    <RuntimeIdentifiers>linux-x64</RuntimeIdentifiers>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Nl2Sql.ServiceDefaults\Nl2Sql.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Nl2Sql.Agent\Nl2Sql.Agent.csproj" />

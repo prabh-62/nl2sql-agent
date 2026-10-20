@@ -50,6 +50,10 @@ resource app 'Microsoft.Web/sites@2024-11-01' = {
     clientAffinityEnabled: false
     siteConfig: {
       linuxFxVersion: 'DOTNET|11'
+      // The app is published self-contained (App Service has .NET 11 RC1, the app needs RC2), so
+      // run its own executable instead of `dotnet Nl2Sql.Api.dll`. Zip deploys don't keep the
+      // executable bit, hence the chmod.
+      appCommandLine: 'chmod +x /home/site/wwwroot/Nl2Sql.Api && /home/site/wwwroot/Nl2Sql.Api'
       alwaysOn: false // not available on F1: the app sleeps when idle and cold-starts on the next request
       ftpsState: 'Disabled'
       minTlsVersion: '1.2'
@@ -59,6 +63,9 @@ resource app 'Microsoft.Web/sites@2024-11-01' = {
         // DefaultAzureCredential: use only the nl2sql-reader managed identity.
         { name: 'AZURE_CLIENT_ID', value: reader.properties.clientId }
         { name: 'AZURE_TOKEN_CREDENTIALS', value: 'ManagedIdentityCredential' }
+        // App Service forwards to port 8080; the app's own executable doesn't get Oryx's defaults.
+        { name: 'ASPNETCORE_HTTP_PORTS', value: '8080' }
+        { name: 'WEBSITES_PORT', value: '8080' }
         {
           name: 'ConnectionStrings__db'
           value: 'Server=tcp:${sqlServerName}${environment().suffixes.sqlServerHostname},1433;Database=${sqlDatabaseName};Authentication=Active Directory Managed Identity;User Id=${reader.properties.clientId};Encrypt=True;Connect Timeout=90'

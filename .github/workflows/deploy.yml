@@ -49,9 +49,11 @@ jobs:
       - name: Build the web app
         working-directory: src/web
         run: vp build
+      # Self-contained: App Service only has the .NET 11 RC1 runtime and the app needs RC2, so the
+      # deploy carries its own runtime. Switch back to framework-dependent once App Service has it.
       - name: Publish the API with the web app in wwwroot
         run: |
-          dotnet publish src/Nl2Sql.Api --configuration Release --output publish
+          dotnet publish src/Nl2Sql.Api --configuration Release --runtime linux-x64 --self-contained true --output publish
           mkdir -p publish/wwwroot
           cp -r src/web/dist/. publish/wwwroot/
 
@@ -75,6 +77,10 @@ jobs:
         with:
           app-name: ${{ env.APP_NAME }}
           package: publish
+
+      # In case it was stopped (for example after hitting the Free plan's CPU quota).
+      - name: Start the app
+        run: az webapp start --resource-group "$RESOURCE_GROUP" --name "$APP_NAME"
 
       # F1 apps sleep when idle, so give the first request time to cold-start. Then ask one real
       # question: it proves the managed identity reaches both the database and Foundry.
