@@ -17,11 +17,11 @@
 Letting a model loose on a production database goes wrong in three ways. This project is about closing each one, with tests that prove it.
 
 ```mermaid
-%%{init: {'theme':'base', 'themeVariables': {'fontSize':'15px'}}}%%
+%%{init: {'theme':'base'}}%%
 flowchart LR
-    Q(["💬 Question"]) --> W{{"😬 Wrong answer?"}}
-    Q --> L{{"🔓 Someone else's data?"}}
-    Q --> D{{"💣 Changes or breaks data?"}}
+    Q(["💬 Question"]) --> W("😬 Wrong answer?")
+    Q --> L("🔓 Someone else's data?")
+    Q --> D("💣 Changes or breaks data?")
 
     W --> W1["📚 Curated semantic layer<br/>views encode the business rules<br/>+ descriptions + worked examples"]
     L --> L1["🛡️ Row-level security<br/>read-only session context<br/>owner sees brand, manager sees store"]
@@ -112,7 +112,7 @@ flowchart LR
     subgraph GitHub["🐙 GitHub Actions (OIDC, no secrets)"]
         CI["ci · safety · evals · deploy"]
     end
-    UI <-- "AG-UI events (SSE)" --> API
+    UI <-->|"AG-UI events over SSE"| API
     API -- "managed identity<br/>SELECT on ai only" --> SQL
     API -- "managed identity" --> AI
     CI -- "nl2sql-deployer" --> API
