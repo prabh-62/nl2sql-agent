@@ -45,7 +45,7 @@ internal static class SafetyDatabase
     /// <summary>A reader connection with no session context at all, bypassing <see cref="ReaderConnection"/>.</summary>
     public static async Task<SqlConnection> OpenWithoutContextAsync()
     {
-        var connection = new SqlConnection(ConnectionString + ";Pooling=false");
+        var connection = new SqlConnection(ConnectionString + ";Pooling=false") { RetryLogicProvider = ReaderConnection.OpenRetry };
         await connection.OpenAsync(TestContext.Current.CancellationToken);
         if (Impersonates)
         {

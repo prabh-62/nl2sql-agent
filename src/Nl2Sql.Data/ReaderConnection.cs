@@ -16,6 +16,16 @@ namespace Nl2Sql.Data;
 /// </summary>
 public static partial class ReaderConnection
 {
+    // The free-tier database auto-pauses when idle. The first connections after that fail with
+    // "database is not currently available" (40613) for up to about a minute while it resumes.
+    public static readonly SqlRetryLogicBaseProvider OpenRetry = SqlConfigurableRetryFactory.CreateExponentialRetryProvider(
+        new SqlRetryLogicOption
+        {
+            NumberOfTries = 8,
+            DeltaTime = TimeSpan.FromSeconds(2),
+            MaxTimeInterval = TimeSpan.FromSeconds(20),
+        });
+
     public static async Task<ReaderSession> OpenAsync(
         string connectionString,
         TenantScope scope,
@@ -24,7 +34,7 @@ public static partial class ReaderConnection
     {
         ArgumentNullException.ThrowIfNull(scope);
 
-        var connection = new SqlConnection(connectionString);
+        var connection = new SqlConnection(connectionString) { RetryLogicProvider = OpenRetry };
         byte[]? cookie = null;
         try
         {
