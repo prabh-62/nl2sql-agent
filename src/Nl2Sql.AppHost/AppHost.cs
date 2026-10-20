@@ -19,7 +19,7 @@ var foundry = builder.AddConnectionString("foundry", ReferenceExpression.Create(
 var migrations = builder.AddProject<Projects.Nl2Sql_MigrationService>("migrations")
     .WithReference(db);
 
-// The nl2sql-reader managed identity (infra/reader-identity) that App Service and CI sign in as.
+// The nl2sql-reader managed identity (infra/bootstrap) that App Service and CI sign in as.
 // Its client ID isn't secret; the migration service adds it to the nl2sql_reader role.
 if (builder.Configuration["ReaderIdentity:ClientId"] is { Length: > 0 } readerClientId)
 {

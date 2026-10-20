@@ -1,0 +1,95 @@
+name: deploy
+
+# Deploys the public demo after CI passes on main (or on demand): infrastructure first
+# (infra/app/main.bicep), then the code. Signs in with GitHub OIDC as nl2sql-deployer, which can
+# only manage web apps and plans in the resource group and attach nl2sql-reader to them.
+# Database schema changes are applied separately, from a developer's machine.
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+env:
+  RESOURCE_GROUP: rg-hemingford-9901
+  APP_NAME: ms-sql-nl2sql-agent
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    # No GitHub environment on purpose: it would change the OIDC subject the deployer trusts
+    # (ref:refs/heads/main).
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          # The commit CI just tested, not whatever main points to now.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-dotnet@v6.0.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: "**/packages.lock.json"
+      - uses: voidzero-dev/setup-vp@v1.21.2
+        with:
+          working-directory: src/web
+          cache: true
+
+      - name: Build the web app
+        working-directory: src/web
+        run: vp build
+      - name: Publish the API with the web app in wwwroot
+        run: |
+          dotnet publish src/Nl2Sql.Api --configuration Release --output publish
+          mkdir -p publish/wwwroot
+          cp -r src/web/dist/. publish/wwwroot/
+
+      - uses: azure/login@v3.1.0
+        with:
+          client-id: ${{ vars.AZURE_DEPLOYER_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy infrastructure
+        run: |
+          az deployment group create \
+            --resource-group "$RESOURCE_GROUP" \
+            --name app \
+            --template-file infra/app/main.bicep \
+            --parameters appName="$APP_NAME" \
+            --output none
+
+      - name: Deploy the app
+        uses: azure/webapps-deploy@v3.0.8
+        with:
+          app-name: ${{ env.APP_NAME }}
+          package: publish
+
+      # F1 apps sleep when idle, so give the first request time to cold-start. Then ask one real
+      # question: it proves the managed identity reaches both the database and Foundry.
+      - name: Smoke test
+        run: |
+          url="https://$APP_NAME.azurewebsites.net"
+          for attempt in $(seq 1 30); do
+            if curl -fsS "$url/api/personas" > /dev/null; then break; fi
+            sleep 10
+          done
+          curl -fsS "$url/" | grep -q '<div id="root">'
+          events="$(curl -fsS -N -X POST "$url/api/agui" \
+            -H "Content-Type: application/json" -H "X-Persona: tim-hortons-owner" \
+            --max-time 180 \
+            -d '{"threadId":"smoke","runId":"smoke","state":{},"messages":[{"id":"1","role":"user","content":"How many orders did we have last month?"}],"tools":[],"context":[],"forwardedProps":{}}')"
+          echo "$events" | grep -q '"toolCallName":"run_query"'
+          echo "$events" | grep -q '"type":"RUN_FINISHED"'
+          echo "Smoke test passed: $url"

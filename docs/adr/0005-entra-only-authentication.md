@@ -14,7 +14,7 @@ Use Microsoft Entra ID for every connection, locally and in Azure:
 
 - **Locally:** the developer's `az login`, through `DefaultAzureCredential`. The AppHost sets `AZURE_TOKEN_CREDENTIALS=dev` for the API in run mode so it only tries developer credentials.
 - **In Azure:** the App Service managed identity.
-- **CI:** GitHub OIDC, signed in as the `nl2sql-reader` managed identity (`infra/reader-identity`).
+- **CI:** GitHub OIDC, signed in as the `nl2sql-reader` managed identity (`infra/bootstrap`).
 - **No SQL container.** Local development uses the existing Azure SQL database (see [0007](0007-reuse-existing-azure-resources.md)), with `Authentication=Active Directory Default` in the connection string.
 
 ## Consequences
@@ -27,4 +27,4 @@ Use Microsoft Entra ID for every connection, locally and in Azure:
 
 Without `AZURE_TOKEN_CREDENTIALS=dev`, `DefaultAzureCredential` on a laptop first probes the managed-identity endpoint (`169.254.169.254`), which fails slowly and shows up as exceptions in traces. Set it in the AppHost for local runs. And disable database health checks against serverless databases you don't want kept awake.
 
-GitHub's OIDC token subject names the repository with immutable IDs (`repo:owner@ownerId/name@repoId:ref:refs/heads/main`), not just `owner/name`. Federated credentials must match that exactly; `infra/reader-identity/deploy.sh` reads the IDs from the GitHub API.
+GitHub's OIDC token subject names the repository with immutable IDs (`repo:owner@ownerId/name@repoId:ref:refs/heads/main`), not just `owner/name`. Federated credentials must match that exactly; `infra/bootstrap/deploy.sh` reads the IDs from the GitHub API.
